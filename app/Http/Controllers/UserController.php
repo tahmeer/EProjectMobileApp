@@ -1,16 +1,14 @@
 <?php
-
 namespace App\Http\Controllers;
-
+use Illuminate\Http\Request; 
+use App\Http\Controllers\Controller;
 use App\Models\User;
+// use App\User; 
+use Illuminate\Support\Facades\Auth; 
 use Validator;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-
-class UserController extends Controller
+class UserController extends Controller 
 {
-    //
-    public $successStatus = 200;
+public $successStatus = 200;
 /** 
      * login api 
      * 
@@ -35,23 +33,36 @@ class UserController extends Controller
     { 
         $validator = Validator::make($request->all(), [ 
             'name' => 'required', 
-            'email' => 'required|email|unique:users', 
+            'email' => 'required|email', 
             'password' => 'required', 
             // 'c_password' => 'required|same:password', 
         ]);
 if ($validator->fails()) { 
             return response()->json(['error'=>$validator->errors()], 401);            
         }
-
-        // $path = 'public\User\images';
-        // $image = $request->image->store($path);
-        // $user->image = str_replace('public/', '', $image);
-$input = $request->all(); 
-        $input['password'] = bcrypt($input['password']); 
-        $user = User::create($input); 
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $path = 'public\Images\User';
+        $image = $request->image->store($path);
+        $user->image = str_replace('public/','',$image);
+        $user->password = bcrypt($request->password);
+        $user->save();
+        // $input = $request->all(); 
+        // $input['password'] = bcrypt($input['password']); 
+        // $user = User::create($input); 
         $success['token'] =  $user->createToken('MyApp')-> accessToken; 
         $success['name'] =  $user->name;
 return response()->json(['success'=>$success], $this-> successStatus); 
     }
-
+/** 
+     * details api 
+     * 
+     * @return \Illuminate\Http\Response 
+     */ 
+    public function details() 
+    { 
+        $user = Auth::user(); 
+        return response()->json(['success' => $user], $this-> successStatus); 
+    } 
 }
